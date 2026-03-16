@@ -1,13 +1,15 @@
-# Makefile — Container Orchestration System
-# Build individual role demos or the full system
+# Makefile — Container Orchestration System (Mini Docker)
+# ML2011 Operating Systems — VIT Pune 2025-26
 #
-# Usage:
-#   make role1    → Build & run Architecture Lead demo
-#   make role2    → Build & run Memory & Storage demo
-#   make role3    → Build & run Scheduler demo
-#   make role4    → Build & run Security & Sync demo
-#   make role5    → Build & run Monitoring demo
-#   make all      → Build complete system
+# FIRST TIME SETUP:
+#   make setup    → Creates src/ and include/ structure from root files
+#
+# BUILD & RUN (after setup):
+#   make role4    → Security & Deadlock demo  (no sudo needed)
+#   sudo make role1     → Architecture / namespaces demo
+#   sudo make role2     → Memory & storage demo
+#   sudo make role3     → CPU scheduler demo
+#   sudo make role5     → Monitoring dashboard demo
 #   make clean    → Remove all binaries
 
 CC      = gcc
@@ -17,8 +19,28 @@ LDFLAGS = -lpthread
 SRC_DIR = src
 BIN_DIR = bin
 
-# Create bin dir
+# Auto-create bin dir before any build target
 $(shell mkdir -p $(BIN_DIR))
+
+# ── First-time directory structure setup ────────────────────
+setup:
+	mkdir -p src include
+	@for f in role1_architecture.c role2_memory_storage.c \
+	           role3_scheduler.c role4_security_sync.c \
+	           role5_monitoring.c; do \
+	  if [ ! -f src/$$f ]; then \
+	    cp $$f src/$$f; \
+	    echo "  copied $$f -> src/$$f"; \
+	  fi; \
+	done
+	@if [ ! -f include/container.h ]; then \
+	  cp container.h include/container.h; \
+	  echo "  copied container.h -> include/container.h"; \
+	fi
+	@echo ""
+	@echo "Setup complete! Now run your role:"
+	@echo "  make role4              # no sudo needed"
+	@echo "  sudo make role1         # needs root"
 
 # ── Individual role demos ───────────────────────────────────
 role1:
@@ -52,18 +74,7 @@ role5:
 		-o $(BIN_DIR)/role5_demo $(LDFLAGS)
 	@echo "Built. Run: sudo ./$(BIN_DIR)/role5_demo"
 
-# ── Full system ─────────────────────────────────────────────
-all:
-	$(CC) $(CFLAGS) \
-		$(SRC_DIR)/role1_architecture.c \
-		$(SRC_DIR)/role2_memory_storage.c \
-		$(SRC_DIR)/role3_scheduler.c \
-		$(SRC_DIR)/role4_security_sync.c \
-		$(SRC_DIR)/role5_monitoring.c \
-		-o $(BIN_DIR)/container_system $(LDFLAGS)
-	@echo "Full system built: ./$(BIN_DIR)/container_system"
-
 clean:
 	rm -rf $(BIN_DIR)
 
-.PHONY: role1 role2 role3 role4 role5 all clean
+.PHONY: setup role1 role2 role3 role4 role5 clean
